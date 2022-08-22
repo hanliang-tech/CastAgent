@@ -1,0 +1,5 @@
+/app/build
+/app/.cxx/*
+/app/.externalNativeBuild/*
+.idea
+.gradle

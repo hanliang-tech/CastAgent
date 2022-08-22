@@ -1,0 +1,148 @@
+# For more information about using CMake with Android Studio, read the
+# documentation: https://d.android.com/studio/projects/add-native-code.html
+
+# Sets the minimum version of CMake required to build the native library.
+
+cmake_minimum_required(VERSION 3.4.1)
+
+# Creates and names a library, sets it as either STATIC
+# or SHARED, and provides the relative paths to its source code.
+# You can define multiple libraries, and CMake builds them for you.
+# Gradle automatically packages shared libraries with your APK.
+include(ndk-stl-config.cmake)
+
+include_directories(dlna/Platinum/Platinum
+        dlna/Platinum/Core
+        dlna/Platinum/Devices/MediaServer
+        dlna/Platinum/Devices/MediaConnect
+        dlna/Platinum/Devices/MediaRenderer
+        dlna/Platinum/Extras
+        dlna/Neptune/Core
+        dlna/
+        airplay/ed25519
+        airplay/curve25519
+        airplay/crypt
+        airplay/explay
+        airplay/explay/alac
+        airplay/explay/aac_eld
+        airplay/fdk/libAACdec/include
+        airplay/fdk/libAACenc/include
+        airplay/fdk/libPCMutils/include
+        airplay/fdk/libFDK/include
+        airplay/fdk/libSYS/include
+        airplay/fdk/libMpegTPDec/include
+        airplay/fdk/libMpegTPEnc/include
+        airplay/fdk/libSBRdec/include
+        airplay/fdk/libSBRenc/include
+        airplay/fdk/libFDK/aarch64/include
+        airplay/mdns/mDNSShared
+        airplay/mdns/mDNSCore
+        airplay/mdns/mDNSPosix
+        airplay/plist/src
+        airplay/plist/libcnary
+        airplay/plist/include
+        airplay/dmr
+        ./
+        )
+
+#media/ffmpeg/include
+#media/rockplayer
+#Users/xiaguoqiang/Develope/android-sdk-macosx/ndk-bundle/sources/cxx-stl/stlport/stlport
+
+# 查找所有源码 并拼接到路径列表
+#aux_source_directory(${CMAKE_HOME_DIRECTORY}/ SRC_LIST)
+
+file(GLOB_RECURSE DLNA_SRC "${CMAKE_HOME_DIRECTORY}/dlna/*.cpp")
+
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/crypt crypt)
+file(GLOB_RECURSE curve25519 "${CMAKE_HOME_DIRECTORY}/airplay/curve25519/curve25519-donna.c")
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/dmr dmr)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/ed25519 ed25519)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk fdk)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libAACdec/src fdk1)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libAACenc/src fdk2)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libFDK/src fdk3)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libMpegTPDec/src fdk4)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libMpegTPEnc/src fdk5)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libPCMutils/src fdk6)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libSBRdec/src fdk7)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libSBRenc/src fdk8)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/fdk/libSYS/src fdk9)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/mdns/mDNSCore mdnsCore)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/mdns/mDNSPosix mdnsPosix)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/mdns/mDNSShared mdnsShared)
+
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/plist/libcnary plist)
+aux_source_directory(${CMAKE_HOME_DIRECTORY}/airplay/plist/src plist1)
+file(GLOB_RECURSE explay "${CMAKE_HOME_DIRECTORY}/airplay/explay/*.c")
+#aux_source_directory(${CMAKE_HOME_DIRECTORY} jnisrc)
+
+
+list(APPEND SRC_LIST ${DLNA_SRC})
+list(APPEND SRC_LIST ${crypt})
+list(APPEND SRC_LIST ${curve25519})
+list(APPEND SRC_LIST ${dmr})
+list(APPEND SRC_LIST ${ed25519})
+list(APPEND SRC_LIST ${fdk1})
+list(APPEND SRC_LIST ${fdk2})
+list(APPEND SRC_LIST ${fdk3})
+list(APPEND SRC_LIST ${fdk4})
+list(APPEND SRC_LIST ${fdk5})
+list(APPEND SRC_LIST ${fdk6})
+list(APPEND SRC_LIST ${fdk7})
+list(APPEND SRC_LIST ${fdk8})
+list(APPEND SRC_LIST ${fdk9})
+list(APPEND SRC_LIST ${mdnsCore})
+list(APPEND SRC_LIST ${mdnsPosix})
+list(APPEND SRC_LIST ${mdnsShared})
+list(APPEND SRC_LIST ${plist})
+list(APPEND SRC_LIST ${plist1})
+list(APPEND SRC_LIST ${explay})
+list(APPEND SRC_LIST ${jnisrc})
+
+#aux_source_directory(${CMAKE_HOME_DIRECTORY}/media SRC_MEDIA)
+#aux_source_directory(${CMAKE_HOME_DIRECTORY}/media/ffmpeg/src ffmpeg)
+
+#file(GLOB_RECURSE ROCKPLAYER_SRC "${CMAKE_HOME_DIRECTORY}/media/rockplayer/*.c")
+#list(APPEND SRC_MEDIA ${ffmpeg})
+#list(APPEND SRC_MEDIA ${ROCKPLAYER_SRC})
+#file(GLOB_RECURSE NATIVE_SRCS "${CMAKE_HOME_DIRECTORY}/*.cpp")
+#file(GLOB_RECURSE NATIVE_SRCS_C "${CMAKE_HOME_DIRECTORY}/*.c")
+#list(APPEND NATIVE_SRCS ${NATIVE_SRCS_C})
+
+
+
+add_library(
+        excast
+        SHARED
+        ${SRC_LIST})
+#
+#
+#
+#
+#
+#target_link_libraries(excast
+#        ${log-lib})
+
+
+#add_library( # Sets the name of the library.
+       # native-lib
+
+        # Sets the library as a shared library.
+        #SHARED
+
+        #${SRC_LIST})
+        # Provides a relative path to your source file(s).
+#        native-lib.cpp)
+
+find_library(log-lib
+        log)
+
+        target_link_libraries( excast
+        ${log-lib} )
+
+#target_link_libraries(native-lib
+#        ${CMAKE_SOURCE_DIR}/../../../libs/${ANDROID_ABI}/libexcast.so
+#        ${log-lib} )
+
+

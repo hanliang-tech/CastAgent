@@ -1,0 +1,9 @@
+//对外展示的服务名
+Name: TCL电视
+//如果是client，读取client传过来的prefer参数包名，交给该包对应的app执行DLNA服务
+//如果没有该参数则用default定义的包名，默认server
+By: client/server
+//实际执行DLNA动作的server包名
+Default: myself
+//服务端管理接口地址，接口功能即支持指定某个请求要调度给谁
+Server:http://xxxxxx.xxxxx/xxxx
