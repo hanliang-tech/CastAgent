@@ -140,8 +140,8 @@ add_library(
 find_library(log-lib
         log)
 
-
 target_link_libraries(native-lib
         exdlna
         exairplay
         ${log-lib})
+

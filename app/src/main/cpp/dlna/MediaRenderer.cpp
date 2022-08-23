@@ -178,7 +178,7 @@ NPT_Result MediaRenderer::OnSeek(PLT_ActionReference &action) {
 }
 
 NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action) {
-    NPT_String uri, meta;
+    NPT_String uri, meta,serverIp,clientIp;
     PLT_Service *service;
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
     NPT_CHECK_SEVERE(action->GetArgumentValue("CurrentURI", uri));
@@ -206,16 +206,24 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action) {
     while (!isFind) {
         ctrlPoint->Search();
         __android_log_print(ANDROID_LOG_ERROR, "xia", "-------search-------");
+        NPT_List<NPT_IpAddress> ips;
+        PLT_UPnPMessageHelper::GetIPAddresses(ips);
+
+        if (ips.GetItemCount()) {
+            serverIp = ips.GetFirstItem()->ToString();
+            __android_log_print(ANDROID_LOG_ERROR, "xia", "localhost ip %s", ips.GetFirstItem()->ToString().GetChars());
+        }
+
         const PLT_StringMap rendersNameTable = controller->getMediaRenderersNameTable();
         if (rendersNameTable.GetEntries().GetItemCount() != 0) {
             NPT_List<PLT_StringMapEntry *>::Iterator entry = rendersNameTable.GetEntries().GetItem(
                     1);
-            while (entry) {
 
-                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  name::  %s\\n\"", (*entry)->GetValue().GetChars());
-                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  friendName::  %s\\n\"", friendName.GetChars());
-                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  isCom::  %d\\n\"", friendName.Compare((*entry)->GetValue()));
-                if (friendName.Compare((*entry)->GetValue()) < 0) {
+            while (entry) {
+                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  name::  %s\\n\"", (*entry)->GetValue().Split("|").GetItem(0)->GetChars());
+                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  ip::  %s\\n\"", (*entry)->GetValue().Split("|").GetItem(1)->GetChars());
+                clientIp = NPT_String((*entry)->GetValue().Split("|").GetItem(1));
+                if (friendName.Compare((*entry)->GetValue()) < 0 && serverIp.Compare(clientIp)) {
                     controller->chooseMediaRenderer((*entry)->GetKey());
                     __android_log_print(ANDROID_LOG_ERROR, "xia", "选择设备");
                     isFind = true;

@@ -27,13 +27,7 @@ public class AppContext extends Application {
         super.onCreate();
         instance = this;
 //        Utils.forceStopAllTvVideo(this);
-        Intent mIntent = new Intent();
-        mIntent.setAction(CastServer.START_CAST_ENGINE);
-        mIntent.setPackage("com.ex.unisen.cast");
-        startService(mIntent);
-        String name = Utils.getConfigByName(this,"Name");
-        Log.i("xia","config name ::" + name);
-        CastServer.startCastServer(CommonUtil.getCastName(this, Utils.getConfigByName(this,"Name")),String.valueOf(9000), UUID.randomUUID().toString());
+
     }
 
 

@@ -46,10 +46,12 @@ DLNAController::getMediaRenderersNameTable() {
     // create a map with the device UDN -> device Name
     const NPT_List<PLT_DeviceMapEntry *> &entries = deviceList.GetEntries();
     NPT_List<PLT_DeviceMapEntry *>::Iterator entry = entries.GetFirstItem();
+//    namesTable.Put("ip", ip);
     while (entry) {
         PLT_DeviceDataReference device = (*entry)->GetValue();
         NPT_String name = device->GetFriendlyName();
-        namesTable.Put((*entry)->GetKey(), name);
+        NPT_String ip = device->GetLocalIP().ToString();
+        namesTable.Put((*entry)->GetKey(), name + "|" + ip);
         ++entry;
     }
 
@@ -212,12 +214,12 @@ DLNAController::setSeekTime(const char *command) {
 bool
 DLNAController::OnMRAdded(PLT_DeviceDataReference &device) {
     NPT_String uuid = device->GetUUID();
-//    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d :: uuid :: %s\n", __FUNCTION__,
-//                        __LINE__, uuid.GetChars());
-//    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d :: friendlyname :: %s\n", __FUNCTION__,
-//                        __LINE__, device->GetFriendlyName().GetChars());
-//    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d :: m_HostName :: %s\n", __FUNCTION__,
-//                        __LINE__, device->GetURLBase().GetHost().GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d :: uuid :: %s\n", __FUNCTION__,
+                        __LINE__, uuid.GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d :: friendlyname :: %s\n", __FUNCTION__,
+                        __LINE__, device->GetFriendlyName().GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d :: m_HostName :: %s\n", __FUNCTION__,
+                        __LINE__, device->GetURLBase().GetHost().GetChars());
 
     // test if it's a media renderer
     PLT_Service *service;

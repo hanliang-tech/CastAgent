@@ -145,17 +145,17 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
 
 
     public boolean startEngine() {
-//        Intent mIntent = new Intent();
-//        mIntent.setAction(CastServer.START_CAST_ENGINE);
-//        mIntent.setPackage("com.ex.unisen.cast");
-//        getApplication().startService(mIntent);
-////        Intent serviceIntent = new Intent();
-//////        serviceIntent.setClass(this, WifiDisplayService.class);
-//////        getApplication().startService(serviceIntent);
-//////        initContext();
-//        String name = Utils.getConfigByName(this,"Name");
-//        Log.i("xia","config name ::" + name);
-//        CastServer.startCastServer(CommonUtil.getCastName(this, Utils.getConfigByName(this,"Name")),String.valueOf(9000), UUID.randomUUID().toString());toString
+        Intent mIntent = new Intent();
+        mIntent.setAction(CastServer.START_CAST_ENGINE);
+        mIntent.setPackage("com.ex.unisen.cast");
+        getApplication().startService(mIntent);
+//        Intent serviceIntent = new Intent();
+////        serviceIntent.setClass(this, WifiDisplayService.class);
+////        getApplication().startService(serviceIntent);
+////        initContext();
+        String name = Utils.getConfigByName(this,"Name");
+        Log.i("xia","config name ::" + name);
+        CastServer.startCastServer(CommonUtil.getCastName(this, Utils.getConfigByName(this,"Name")),String.valueOf(9000), UUID.randomUUID().toString());
         return true;
     }
 
