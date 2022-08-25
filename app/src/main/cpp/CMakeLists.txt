@@ -104,15 +104,18 @@ if (EXISTS "${CMAKE_HOME_DIRECTORY}/dlna")
             dlna/Platinum/Extras
             dlna/Neptune/Core
             dlna/
-            )
-    file(GLOB_RECURSE DLNA_SRC "${CMAKE_HOME_DIRECTORY}/dlna/*.cpp")
-    list(APPEND DLNASRC ${DLNA_SRC})
+    )
+#    set(DLNASRC
+#            ${CMAKE_HOME_DIRECTORY}/dlna/*.cpp
+#            )
+        file(GLOB_RECURSE DLNA_SRC "${CMAKE_HOME_DIRECTORY}/dlna/*.cpp")
+#        list(APPEND DLNASRC ${DLNA_SRC})
     #    设置生成.so目录
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI})
     add_library(
             exdlna
             SHARED
-            ${DLNASRC})
+            ${DLNA_SRC})
 
     find_library(log-lib
             log)
@@ -136,6 +139,9 @@ add_library(
         SHARED
         ${NATIVE_SRC})
 
+
+find_library(log-lib
+        log)
 
 find_library(log-lib
         log)

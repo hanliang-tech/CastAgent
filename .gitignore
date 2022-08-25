@@ -3,3 +3,5 @@
 /app/.externalNativeBuild/*
 .idea
 .gradle
+.DS_Store
+/app/src/main/cpp/airplay/

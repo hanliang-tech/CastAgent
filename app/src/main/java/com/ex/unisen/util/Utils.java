@@ -10,6 +10,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 
+import com.ex.unisen.cast.CommonUtil;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
@@ -131,5 +133,20 @@ public final class Utils {
         }
     }
 
+    public static String creat12BitUUID(Context context){
+		String defaultUUID  = "123456789abc";
+
+		String mac = CommonUtil.getLocalMacAddress(context);
+
+		mac = mac.replace(":","");
+		mac = mac.replace(".","");
+
+		if (mac.length() != 12){
+			mac = defaultUUID;
+		}
+		// 取4位随机数
+        mac = mac.substring(0,4);
+		return mac;
+	}
 
 }

@@ -299,7 +299,7 @@ public class CastServer extends Service {
     }
 
     public boolean restartEngine() {
-        String castname = getCastName(this, Utils.getConfigByName(this, "Name"));
+        String castname = AppContext.getInstance().getDeviceName();
         castThread.setParam(castname, "01234567890");
         if (castThread.isAlive()) {
             castThread.restartEngine();
@@ -310,7 +310,7 @@ public class CastServer extends Service {
     }
 
     private void awakeWorkThread() {
-        String castname = getCastName(this, Utils.getConfigByName(this, "Name"));
+        String castname = AppContext.getInstance().getDeviceName();
         castThread.setParam(castname, "01234567890");
         if (castThread.isAlive()) {
             castThread.awakeThread();

@@ -13,10 +13,15 @@ import com.ex.unisen.util.Utils;
 
 import java.util.UUID;
 
+import eskit.sdk.support.messenger.EsMessenger;
+import eskit.sdk.support.messenger.IEsMessenger;
+
 public class AppContext extends Application {
 
     private NetWorkChangReceiver gChangReceiver = null;
     private static AppContext instance;
+    private String deviceName;
+    IEsMessenger esMessenger
 
     public static AppContext getInstance() {
         return instance;
@@ -26,13 +31,44 @@ public class AppContext extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
+        esMessenger = EsMessenger.get();
+        deviceName = Utils.getConfigByName(this, "Name") + Utils.creat12BitUUID(this);
+        esMessenger.start(this, new IEsMessenger.MessengerCallback() {
+
+            @Override
+            public String getDeviceName() {
+                return deviceName;
+            }
+
+            @Override
+            public void onReceiveStartEsEvent(String jsonData) {
+                Log.i("rui", "jsonData::" + jsonData);
+            }
+
+            @Override
+            public void onStartSuccess() {
+
+            }
+
+            @Override
+            public void onStartFailed(Exception e) {
+
+            }
+        });
 //        Utils.forceStopAllTvVideo(this);
 
     }
 
 
+    public String getDeviceName() {
+        if (deviceName != null)
+            return deviceName;
+        else
+            return Utils.getConfigByName(this,"Name") + Utils.creat12BitUUID(this);
+    }
+
     public void onDestroy() {
-        Log.i("xia", "yzs onDestroy");
+        esMessenger.stop(this);
         /*
         if (gChangReceiver != null) {
             unregisterReceiver(gChangReceiver);

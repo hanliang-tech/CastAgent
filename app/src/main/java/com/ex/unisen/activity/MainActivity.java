@@ -16,6 +16,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.ex.unisen.AppContext;
 import com.ex.unisen.R;
 import com.ex.unisen.cast.CastServer;
 import com.ex.unisen.cast.CommonUtil;
@@ -155,7 +156,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
 ////        initContext();
         String name = Utils.getConfigByName(this,"Name");
         Log.i("xia","config name ::" + name);
-        CastServer.startCastServer(CommonUtil.getCastName(this, Utils.getConfigByName(this,"Name")),String.valueOf(9000), UUID.randomUUID().toString());
+        CastServer.startCastServer(AppContext.getInstance().getDeviceName(),String.valueOf(9000), UUID.randomUUID().toString());
         return true;
     }
 
