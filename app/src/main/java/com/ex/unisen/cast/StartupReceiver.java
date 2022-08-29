@@ -19,15 +19,12 @@ public class StartupReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		// TODO: This method is called when the BroadcastReceiver is receiving
-		// an Intent broadcast.
-		//throw new UnsupportedOperationException("Not yet implemented");
 	       Log.e(TAG,"StartupReceiver  onReceive");
 
 	        if(intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED))
 	        {
 				Intent mIntent = new Intent();
-				mIntent.setAction("com.unisen.ex.start.wifidetect");
+				mIntent.setAction(CastServer.START_CAST_ENGINE);
 				mIntent.setPackage("com.ex.unisen.cast");
 				context.startService(mIntent);
 				Log.i(TAG, "yzs  get start broadcast & StartService");

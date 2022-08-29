@@ -144,8 +144,9 @@ public final class Utils {
 		if (mac.length() != 12){
 			mac = defaultUUID;
 		}
+		Log.i("xia","mac == " + mac);
 		// 取4位随机数
-        mac = mac.substring(0,4);
+        mac = mac.substring(mac.length() - 4,mac.length());
 		return mac;
 	}
 

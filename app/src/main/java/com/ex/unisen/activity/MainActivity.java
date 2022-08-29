@@ -113,7 +113,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
 //            }
 //        });
 //        startService(new Intent(this, WifiDisplayService.class));
-        startEngine();
+//        startEngine();
     }
 
     private void initContext() {
@@ -202,6 +202,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
     @Override
     protected void onResume() {
         super.onResume();
+        this.finish();
 //        registerReceiver(mReceiver, mIntentFilter);
 //        if (!EventBus.getDefault().isRegistered(this)) {
 //            EventBus.getDefault().register(this);

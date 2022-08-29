@@ -25,8 +25,8 @@ import static com.ex.unisen.cast.CommonUtil.getCastName;
 public class CastServer extends Service {
     public static final String TAG = CastServer.class.getSimpleName();
 
-    public static final String START_CAST_ENGINE = "com.unisen.ex.start.engine";
-    public static final String RESTART_CAST_ENGINE = "com.unisen.ex.restart.engine";
+    public static final String START_CAST_ENGINE = "com.ex.start.engine";
+    public static final String RESTART_CAST_ENGINE = "com.ex.restart.engine";
 
     private Handler mHandler;
     private static final int START_ENGINE_MSG_ID = 0x0001;

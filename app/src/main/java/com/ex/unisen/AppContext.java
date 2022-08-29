@@ -21,7 +21,7 @@ public class AppContext extends Application {
     private NetWorkChangReceiver gChangReceiver = null;
     private static AppContext instance;
     private String deviceName;
-    IEsMessenger esMessenger
+    IEsMessenger esMessenger;
 
     public static AppContext getInstance() {
         return instance;
@@ -55,6 +55,7 @@ public class AppContext extends Application {
 
             }
         });
+        startEngine();
 //        Utils.forceStopAllTvVideo(this);
 
     }
@@ -73,6 +74,16 @@ public class AppContext extends Application {
         if (gChangReceiver != null) {
             unregisterReceiver(gChangReceiver);
         }*/
+    }
+
+    public boolean startEngine() {
+        Intent mIntent = new Intent();
+        mIntent.setAction(CastServer.START_CAST_ENGINE);
+        mIntent.setPackage("com.ex.unisen.cast");
+        startService(mIntent);
+        String name = Utils.getConfigByName(this,"Name");
+        CastServer.startCastServer(AppContext.getInstance().getDeviceName(),String.valueOf(9000), UUID.randomUUID().toString());
+        return true;
     }
 
 }
