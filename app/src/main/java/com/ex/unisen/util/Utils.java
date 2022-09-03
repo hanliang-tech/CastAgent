@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 
 
 import com.ex.unisen.cast.CommonUtil;
+import com.ex.unisen.enu.App;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -23,15 +24,6 @@ import eu.chainfire.libsuperuser.Shell;
 public final class Utils {
 
     //    爱奇艺、优酷、腾讯、哔哩哔哩、乐播
-    public static String PACKAGE_NAME_AIQIYI = "com.gitvdemo.video";
-
-    public static String PACKAGE_NAME_BILIBILI = "com.gitvdemo.video";
-
-    public static String PACKAGE_NAME_YOUKU = "com.gitvdemo.video";
-
-    public static String PACKAGE_NAME_TENGXUN = "com.gitvdemo.video";
-
-    public static String PACKAGE_NAME_LEBO = "com.gitvdemo.video";
 
     public static final String CONFIG_SERVER_NAME = "Name";
 
@@ -92,10 +84,6 @@ public final class Utils {
         return false;
     }
 
-    public static String getCurrentAppPackage(String url) {
-
-        return PACKAGE_NAME_AIQIYI;
-    }
 
     /**
      * 根据包名杀死某个程序
@@ -104,18 +92,15 @@ public final class Utils {
      * @param packageName
      */
     public static void forceStopPackage(Context context, String packageName) {
-        Log.i("xia","1111");
         try {
             Shell.Threaded shell = Shell.Pool.SU.get();
             try {
-                if(packageName.equals(PACKAGE_NAME_AIQIYI)) {
-                    shell.run("am force-stop com.gitvdemo.video");
-                }
+                shell.run("am force-stop packageName");
             } finally {
                 shell.close();
             }
         } catch (Shell.ShellDiedException e) {
-            Log.i("xia","杀死进程失败");
+            Log.i("xia", "杀死进程失败");
         }
     }
 
@@ -123,31 +108,33 @@ public final class Utils {
         try {
             Shell.Threaded shell = Shell.Pool.SU.get();
             try {
-                shell.run("am force-stop com.gitvdemo.video");
+                for(App app:App.values()) {
+                    Log.i("xia", "杀死进程" + app.getName());
+                    shell.run("am force-stop " + app.getPackageName());
+                }
             } finally {
                 shell.close();
             }
 
         } catch (Shell.ShellDiedException e) {
-            Log.i("xia","杀死进程失败 e：" + e.getMessage());
+            Log.i("xia", "杀死进程失败 e：" + e.getMessage());
         }
     }
 
-    public static String creat12BitUUID(Context context){
-		String defaultUUID  = "123456789abc";
+    public static String creat12BitUUID(Context context) {
+        String defaultUUID = "123456789abc";
 
-		String mac = CommonUtil.getLocalMacAddress(context);
+        String mac = CommonUtil.getLocalMacAddress(context);
 
-		mac = mac.replace(":","");
-		mac = mac.replace(".","");
+        mac = mac.replace(":", "");
+        mac = mac.replace(".", "");
 
-		if (mac.length() != 12){
-			mac = defaultUUID;
-		}
-		Log.i("xia","mac == " + mac);
-		// 取4位随机数
-        mac = mac.substring(mac.length() - 4,mac.length());
-		return mac;
-	}
+        if (mac.length() != 12) {
+            mac = defaultUUID;
+        }
+        // 取4位随机数
+        mac = mac.substring(mac.length() - 4, mac.length());
+        return mac;
+    }
 
 }

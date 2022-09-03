@@ -43,7 +43,7 @@ public:
 
     NPT_Result OnSeek(PLT_ActionReference &action) override;
 
-    NPT_Result OnSetAVTransportURI(PLT_ActionReference &action) override;
+    NPT_Result OnSetAVTransportURI(PLT_ActionReference &action,const PLT_HttpRequestContext& context) override;
 
     // RenderingControl methods
     NPT_Result OnSetVolume(PLT_ActionReference &action) override;

@@ -56,7 +56,7 @@ public class AppContext extends Application {
             }
         });
         startEngine();
-//        Utils.forceStopAllTvVideo(this);
+        Utils.forceStopAllTvVideo(this);
 
     }
 

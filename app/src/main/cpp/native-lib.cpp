@@ -314,7 +314,11 @@ int64_t get_current_time_ms()
 
 void url_player_open(void *cls, char *url, float fPosition,char *mediaInfo)
 {
-    DoJavaCallback(CALLBACK_EVENT_ON_SET_AV_TRANSPORT_URI, url, mediaInfo,NULL);
+	__android_log_print(ANDROID_LOG_ERROR, "xia", "url_player_open agent::  %s\n", mediaInfo);
+	mVideoStatus = 1;
+	char agent[100] = {0};
+	strcpy(agent,mediaInfo);
+    DoJavaCallback(CALLBACK_EVENT_ON_SET_AV_TRANSPORT_URI, url, agent,NULL);
 
 }
 
@@ -337,7 +341,9 @@ void url_player_pause(void *cls)
 //������ò������Ľ���
 void url_player_stop(void *cls)
 {
+	__android_log_print(ANDROID_LOG_ERROR, "xia", "url_player_stop");
 	if(mVideoStatus == 1){
+		__android_log_print(ANDROID_LOG_ERROR, "xia", "url_player_stop1");
 		mVideoStatus = 0;
 		DoJavaCallback(CALLBACK_EVENT_ON_STOP, NULL, NULL,NULL);
 	}

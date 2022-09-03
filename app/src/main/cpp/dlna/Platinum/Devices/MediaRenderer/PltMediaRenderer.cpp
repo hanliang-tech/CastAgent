@@ -35,6 +35,7 @@
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
+#include <android/log.h>
 #include "../../../Neptune/Core/Neptune.h"
 #include "PltMediaRenderer.h"
 #include "../../Core/PltService.h"
@@ -208,14 +209,11 @@ PLT_MediaRenderer::SetupServices()
 |   PLT_MediaRenderer::OnAction
 +---------------------------------------------------------------------*/
 NPT_Result
-PLT_MediaRenderer::OnAction(PLT_ActionReference&          action, 
+PLT_MediaRenderer::OnAction(PLT_ActionReference&  action,
                             const PLT_HttpRequestContext& context)
 {
-    NPT_COMPILER_UNUSED(context);
-
     /* parse the action name */
     NPT_String name = action->GetActionDesc().GetName();
-
     // since all actions take an instance ID and we only support 1 instance
     // verify that the Instance ID is 0 and return an error here now if not
     NPT_String serviceType = action->GetActionDesc().GetService()->GetServiceType();
@@ -258,7 +256,7 @@ PLT_MediaRenderer::OnAction(PLT_ActionReference&          action,
         return OnStop(action);
     }
     if (name.Compare("SetAVTransportURI", true) == 0) {
-        return OnSetAVTransportURI(action);
+        return OnSetAVTransportURI(action,context);
     }
     if (name.Compare("SetPlayMode", true) == 0) {
         return OnSetPlayMode(action);
@@ -407,7 +405,7 @@ PLT_MediaRenderer::OnStop(PLT_ActionReference& action)
 |   PLT_MediaRenderer::OnSetAVTransportURI
 +---------------------------------------------------------------------*/
 NPT_Result
-PLT_MediaRenderer::OnSetAVTransportURI(PLT_ActionReference& action)
+PLT_MediaRenderer::OnSetAVTransportURI(PLT_ActionReference& action,const PLT_HttpRequestContext& context)
 {
     if (m_Delegate) {
         return m_Delegate->OnSetAVTransportURI(action);

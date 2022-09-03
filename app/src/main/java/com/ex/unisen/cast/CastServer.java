@@ -11,9 +11,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-
 import com.ex.unisen.AppContext;
 import com.ex.unisen.activity.VideoPlayerActivity;
+import com.ex.unisen.enu.App;
 import com.ex.unisen.util.Utils;
 
 import org.greenrobot.eventbus.EventBus;
@@ -41,6 +41,8 @@ public class CastServer extends Service {
 
     private WifiManager.MulticastLock mMulticastLock;
 
+    private static App currentApp = null;
+
 //    private long mServerId = 0;
 //    private long mBasePts = 0;
 //    private Context mContext;
@@ -67,56 +69,28 @@ public class CastServer extends Service {
     }
 
 
-//    public void onRecvVideoData(byte[] nal, int nalType, long dts, long pts, int width, int height) {
-//        Log.d(TAG, "onRecvVideoData pts = " + pts + ", nalType = " + nalType + ", width = " + width + ", height = " + height + ", nal length = " + nal.length);
-//
-//        if (lastTime == 0) {
-//            lastTime = System.currentTimeMillis();
-//        }
-//        byteLen = byteLen + nal.length;
-//        frameCount++;
-//        long diffTime = System.currentTimeMillis() - lastTime;
-//        if (diffTime > 1000) {
-//            long fps = (long) (frameCount / ((float) diffTime / 1000));
-//            long speed = (long) (byteLen / 1024 / ((float) diffTime / 1000));
-//            Log.d("AVSPEED", "fps = " + fps + ", speed = " + speed);
-//            lastTime = System.currentTimeMillis();
-//            byteLen = 0;
-//            frameCount = 0;
-//        }
-//
-//        if (mBasePts == 0) {
-//            mBasePts = pts;
-//        }
-//        NALPacket nalPacket = new NALPacket();
-//        nalPacket.nalData = nal;
-//        nalPacket.nalType = nalType;
-//        nalPacket.pts = pts - mBasePts;
-//        nalPacket.width = width;
-//        nalPacket.height = height;
-//        Log.d("AVSYNC", "recv video pts = " + nalPacket.pts);
-//        mAVPlayer.addPacker(nalPacket);
-//    }
-//
-//    public void onRecvAudioData(short[] pcm, long pts) {
-//        Log.d(TAG, "onRecvAudioData pcm length = " + pcm.length + ", pts = " + pts);
-//        PCMPacket pcmPacket = new PCMPacket();
-//        pcmPacket.data = pcm;
-//        pcmPacket.pts = pts - mBasePts;
-//        Log.d("AVSYNC", "recv audio  pts = " + pcmPacket.pts);
-//        mAVPlayer.addPacker(pcmPacket);
-//    }
-
     private static void onNEvent(int type, String param1, String param2, String param3) {
         Log.d(TAG, "c to java ---type ::" + type + "---param1 ::" + param1 + "---param2 ::" + param2 + "---param3 ::" + param3);
         Event event = new Event();
         event.setOperate(type);
         switch (type) {
             case Event.CALLBACK_EVENT_ON_SET_AV_TRANSPORT_URI:
-                String currentPackage = Utils.getCurrentAppPackage(param2);
-                if (Utils.isAppInstalled(AppContext.getInstance(), currentPackage)) {
-                    Log.d("xia", "播放");
-                    ComponentName componentName = new ComponentName("com.gitvdemo.video", "com.gala.video.app.epg.HomeActivity");
+                if(currentApp != null && currentApp != App.UNKNOW) {
+                    Utils.forceStopPackage(AppContext.getInstance(), currentApp.getPackageName());
+                }
+                currentApp = App.getInstanceWithAgent(param2);
+                if(currentApp == App.UNKNOW){
+                    Log.d("ruisen", "未知应用");
+                    ComponentName componentName = new ComponentName(currentApp.getPackageName(), currentApp.getLaunchActivity());
+                    Intent intent = new Intent();
+                    intent.setComponent(componentName);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    AppContext.getInstance().startActivity(intent);
+                    return;
+                }
+                if (Utils.isAppInstalled(AppContext.getInstance(), currentApp.getPackageName())) {
+                    Log.d("ruisen", "播放");
+                    ComponentName componentName = new ComponentName(currentApp.getPackageName(), currentApp.getLaunchActivity());
                     Intent intent = new Intent();
                     intent.setComponent(componentName);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -124,7 +98,7 @@ public class CastServer extends Service {
                     //播放
 //                    EventBus.getDefault().post(event);
                 } else {
-                    Toast.makeText(AppContext.getInstance(), "未安装应用", Toast.LENGTH_LONG).show();
+//                    Toast.makeText(AppContext.getInstance(), "未安装应用", Toast.LENGTH_LONG).show();
                 }
                 break;
             case Event.CALLBACK_EVENT_ON_SEEK:
@@ -164,8 +138,7 @@ public class CastServer extends Service {
                 break;
             case Event.CALLBACK_EVENT_ON_STOP:
                 Log.i("xia","暂停");
-                String curPackage = Utils.getCurrentAppPackage("");
-                Utils.forceStopPackage(AppContext.getInstance(), curPackage);
+                Utils.forceStopPackage(AppContext.getInstance(), currentApp.getPackageName());
                 EventBus.getDefault().post(event);
                 break;
             case Event.CALLBACK_EVENT_ON_SET_PLAY_MODE:
