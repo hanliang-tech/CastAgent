@@ -14,6 +14,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ex.unisen.AppContext;
@@ -26,6 +27,7 @@ import com.ex.unisen.util.Utils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -37,6 +39,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
     private final IntentFilter mIntentFilter = new IntentFilter();
     private WifiP2pManager mWifiP2pManager;
     private WifiP2pManager.Channel mChannel;
+    private TextView tvMessage;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -202,7 +205,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
     @Override
     protected void onResume() {
         super.onResume();
-        this.finish();
+//        this.finish();
 //        registerReceiver(mReceiver, mIntentFilter);
 //        if (!EventBus.getDefault().isRegistered(this)) {
 //            EventBus.getDefault().register(this);
@@ -212,8 +215,10 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
     @Subscribe(threadMode = ThreadMode.MAIN, priority = 100, sticky = false)
     public void onEvent(Event event) {
         switch (event.getOperate()) {
+            case Event.CALLBACK_EVENT_ONSEARCH:
+                tvMessage.setText(tvMessage.getText() + "\n" + event.getMessage());
+                break;
             case Event.CALLBACK_EVENT_ON_SEEK:
-
                 break;
             case Event.CALLBACK_EVENT_ON_STOP:
                 //停止播放

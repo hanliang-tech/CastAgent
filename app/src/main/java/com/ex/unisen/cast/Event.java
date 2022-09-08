@@ -22,6 +22,9 @@ public class Event {
     public static final int CALLBACK_EVENT_ON_SET_VOLUME = 1009;
     public static final int CALLBACK_EVENT_ON_SET_MUTE = 1010;
 
+
+    public static final int CALLBACK_EVENT_ONSEARCH = 2001;
+
     public static final int EVENT_CONNECTING = 2001;
     public static final int EVENT_CONNECT_RESULT= 2002;
 

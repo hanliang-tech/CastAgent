@@ -35,6 +35,7 @@ struct cast_callbacks_s {
     long(*url_player_getpostion)(void *cls);
     int(*url_player_isplaying)(void *cls);
     int(*url_player_ispaused)(void *cls);
+    int(*player_message)(void *cls,unsigned char *message);
 
     void(*audio_player_init)(void *cls, int bits, int channels, int samplerate, int isaudio);
     void(*audio_player_process)(void *cls, const void *buffer, int buflen, double timestamp, uint32_t seqnum);

@@ -121,7 +121,7 @@ NPT_Result MediaRenderer::Stop() {
     LOGD("MediaRenderer::OnStop()");
     PLT_Service *service;
     controller->setRendererStop();
-//    mcb.url_player_stop(mcb.cls);
+    mcb.url_player_stop(mcb.cls);
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
     service->SetStateVariable("TransportState", "STOPPED");
     service->SetStateVariable("TransportStatus", "OK");
@@ -205,7 +205,15 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,const 
     NPT_CHECK_SEVERE(action->SetArgumentsOutFromStateVariable());
     bool isFind = false;
     while (!isFind) {
-        ctrlPoint->Search();
+        ctrlPoint->Search(
+                NPT_HttpUrl("239.255.255.250", 1900, "*"),
+                "urn:schemas-microsoft-com:service:MSContentDirectory:1", 2, NPT_TimeInterval(10.), NPT_TimeInterval(10.));
+        ctrlPoint->Search(
+                NPT_HttpUrl("239.255.255.250", 1900, "*"),
+                "urn:schemas-upnp-org:service:ContentDirectory:1", 2, NPT_TimeInterval(10.), NPT_TimeInterval(10.));
+//        controller->Search()
+        __android_log_print(ANDROID_LOG_ERROR, "xia", "-------search-------");
+        sleep(3);
         __android_log_print(ANDROID_LOG_ERROR, "xia", "-------search-------");
         NPT_List<NPT_IpAddress> ips;
         PLT_UPnPMessageHelper::GetIPAddresses(ips);
@@ -216,10 +224,10 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,const 
         }
 
         const PLT_StringMap rendersNameTable = controller->getMediaRenderersNameTable();
+        __android_log_print(ANDROID_LOG_ERROR, "xia","\"  entry  count::::  %d\"", rendersNameTable.GetEntries().GetItemCount());
         if (rendersNameTable.GetEntries().GetItemCount() != 0) {
             NPT_List<PLT_StringMapEntry *>::Iterator entry = rendersNameTable.GetEntries().GetItem(
                     1);
-
             while (entry) {
 //                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  name::  %s\\n\"", (*entry)->GetValue().Split("|").GetItem(0)->GetChars());
 //                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  ip::  %s\\n\"", (*entry)->GetValue().Split("|").GetItem(1)->GetChars());

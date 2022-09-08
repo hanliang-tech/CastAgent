@@ -366,6 +366,7 @@ void url_player_setvolume(void *cls, int volume)
 	}
 
 }
+
 //�����ȡ����������ʱ��
 long url_player_getduration(void *cls)
 {
