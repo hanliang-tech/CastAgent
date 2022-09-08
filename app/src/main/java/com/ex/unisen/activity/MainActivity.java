@@ -22,6 +22,7 @@ import com.ex.unisen.R;
 import com.ex.unisen.cast.CastServer;
 import com.ex.unisen.cast.CommonUtil;
 import com.ex.unisen.cast.Event;
+import com.ex.unisen.cast.MediaModel;
 import com.ex.unisen.util.Utils;
 
 import org.greenrobot.eventbus.EventBus;
@@ -45,18 +46,18 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.i("xia","BroadcastReceiver :: " + action);
-            if(WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)){
+            Log.i("xia", "BroadcastReceiver :: " + action);
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
                 int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
                         WifiManager.WIFI_STATE_UNKNOWN);
-                if(WifiManager.WIFI_STATE_ENABLED == wifiState){
+                if (WifiManager.WIFI_STATE_ENABLED == wifiState) {
 //                    updateDevicePref();
                 }
-            }else if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
+            } else if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
 //                mWifiP2pEnabled = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE,
 //                        WifiP2pManager.WIFI_P2P_STATE_DISABLED) == WifiP2pManager.WIFI_P2P_STATE_ENABLED;
-                if(intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE,
-                        WifiP2pManager.WIFI_P2P_STATE_DISABLED) == WifiP2pManager.WIFI_P2P_STATE_ENABLED){
+                if (intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE,
+                        WifiP2pManager.WIFI_P2P_STATE_DISABLED) == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                     mWifiP2pManager.requestPeers(mChannel, MainActivity.this);
                 }
 //                handleP2pStateChanged();
@@ -101,10 +102,12 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
     };
 
     Button bt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        EventBus.getDefault().register(this);
 //        mTextureView = findViewById(R.id.surface);
 //        mTextureView.setSurfaceTextureListener(this);
 //        mAVPlayer = new AVPlayer(this);
@@ -144,6 +147,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
 
     @Override
     protected void onDestroy() {
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
@@ -157,9 +161,9 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
 ////        serviceIntent.setClass(this, WifiDisplayService.class);
 ////        getApplication().startService(serviceIntent);
 ////        initContext();
-        String name = Utils.getConfigByName(this,"Name");
-        Log.i("xia","config name ::" + name);
-        CastServer.startCastServer(AppContext.getInstance().getDeviceName(),String.valueOf(9000), UUID.randomUUID().toString());
+        String name = Utils.getConfigByName(this, "Name");
+        Log.i("xia", "config name ::" + name);
+        CastServer.startCastServer(AppContext.getInstance().getDeviceName(), String.valueOf(9000), UUID.randomUUID().toString());
         return true;
     }
 
@@ -235,31 +239,27 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
                 //设置静音
                 break;
             case Event.CALLBACK_EVENT_ON_SET_AV_TRANSPORT_URI:
-                if(Utils.isAppInstalled(this,"com.gitvdemo.video")) {
-                    ComponentName componentName = new ComponentName("com.gitvdemo.video", "com.gala.video.app.epg.HomeActivity");
-                    Intent intent = new Intent();
-                    intent.setComponent(componentName);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                }else{
-                    Toast.makeText(this,"程序未安装",Toast.LENGTH_LONG).show();
-                }
+                Intent intent = new Intent(this, VideoPlayerActivity.class);
+                MediaModel model = (MediaModel) event.getData();
+                intent.putExtra(VideoPlayerActivity.KEY_DLNA_DATA, model);
+                intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 break;
         }
     }
 
     @Override
     public void onGroupInfoAvailable(WifiP2pGroup wifiP2pGroup) {
-        Log.i(TAG,"onGroupInfoAvailable");
+        Log.i(TAG, "onGroupInfoAvailable");
     }
 
     @Override
     public void onPeersAvailable(WifiP2pDeviceList peers) {
-        Log.i(TAG,"onPeersAvailable");
+        Log.i(TAG, "onPeersAvailable");
         int mConnectedDevices = 0;
         ArrayList<WifiP2pDevice> deviceList = new ArrayList<WifiP2pDevice>();
-        for (WifiP2pDevice peer: peers.getDeviceList()) {
-             Log.d(TAG, " peer " + peer);
+        for (WifiP2pDevice peer : peers.getDeviceList()) {
+            Log.d(TAG, " peer " + peer);
 //            if(WifiDisplayService.isWifiDisplaySource(peer)){
 //                deviceList.add(peer);
 //                if (peer.status == WifiP2pDevice.CONNECTED) mConnectedDevices++;
@@ -277,6 +277,7 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
                 public void onSuccess() {
                     Log.d(TAG, " discover succeed ");
                 }
+
                 public void onFailure(int reason) {
                     Log.d(TAG, " discover fail " + reason);
                 }

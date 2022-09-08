@@ -81,11 +81,24 @@ public class CastServer extends Service {
                 currentApp = App.getInstanceWithAgent(param2);
                 if(currentApp == App.UNKNOW){
                     Log.d("ruisen", "未知应用");
-                    ComponentName componentName = new ComponentName(currentApp.getPackageName(), currentApp.getLaunchActivity());
-                    Intent intent = new Intent();
-                    intent.setComponent(componentName);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    AppContext.getInstance().startActivity(intent);
+                    try {
+                        if(CommonUtil.isPicture(param1,null))
+                        {
+                            MediaModel model = MediaModelFactory.createFromUrl(param1);
+                            model.setObjectClass(MediaUtils.DLNA_OBJECTCLASS_PHOTOID);
+                            event.setData(model);
+                            EventBus.getDefault().post(event);
+                        }else{
+                            MediaModel model = MediaModelFactory.createFromUrl(param1);
+                            model.setObjectClass(MediaUtils.DLNA_OBJECTCLASS_VIDEOID);
+                            model.setUrl(param1);
+                            event.setData(model);
+                            EventBus.getDefault().post(event);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.d("ruisen", "未知应用错误");
+                    }
                     return;
                 }
                 if (Utils.isAppInstalled(AppContext.getInstance(), currentApp.getPackageName())) {
@@ -175,13 +188,17 @@ public class CastServer extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "onCreate");
+        EventBus.getDefault().register(this);
         initCastService();
 
     }
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestroy");
         unInitRenderService();
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
 
     }

@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-fpermissive","-std=c++11"
+                cppFlags "-fpermissive", "-std=c++11"
                 cFlags "-DCONFIG_BIGINT_BARRETT", "-DCONFIG_BIGINT_CRT", "-DCONFIG_BIGINT_SQUARE", "-DCONFIG_BIGINT_32BIT",
                         "-Wno-sequence-point", "-Wno-extra", "-Wno-#warnings", "-Wno-constant-logical-operand", "-Wno-self-assign",
                         "-DNOT_HAVE_SA_LEN", "-DUSES_NETLINK", "-DUSES_BROADCAST_AND_MULTICAST", "-DTARGET_OS_ANDROID", "-DMDNS_DEBUGMSGS=0",
@@ -28,18 +28,18 @@ android {
                         "-DMDNS_UDS_SERVERPATH=\"/dev/socket/mdnsd\"", "-DTARGET_OS_LINUX", "-fpermissive", "-DUSE_TCP_LOOPBACK", "-DNPT_CONFIG_ENABLE_LOGGING", "-D_STLP_USE_NEWALLOC"
 //                arguments "-DANDROID_STL=c++_shared",
                 arguments "-DANDROID_PIE=ON"
-                abiFilters  "armeabi-v7a"
+                abiFilters "armeabi-v7a"
             }
         }
         ndk {
-        moduleName "native-lib"
-        abiFilters  "armeabi-v7a"
+            moduleName "native-lib"
+            abiFilters "armeabi-v7a"
         }
     }
     externalNativeBuild {
-    cmake {
-    path "src/main/cpp/CMakeLists.txt"
-     }
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
     }
     sourceSets {
         main {
