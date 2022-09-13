@@ -1,5 +1,9 @@
 package com.ex.unisen.enu;
 
+import com.ex.unisen.AppContext;
+import com.ex.unisen.cast.CommonUtil;
+import com.ex.unisen.util.Utils;
+
 /**
  * @Author: exdog
  * @Date: 9/3/22 12:40 PM
@@ -23,11 +27,12 @@ public enum App
 
 
     public static App getInstanceWithAgent(String agent){
-        if(agent.contains("IQIYIDLNA"))
+
+        if(agent.contains("IQIYIDLNA") && Utils.getConfigByName(AppContext.getInstance(),"WhiteList").contains(QIYIGUO.packageName))
             return QIYIGUO;
-        if(agent.equals("Linux/3.0.0 UPnP/1.0 Platinum/1.0.5.13"))
+        if(agent.equals("Linux/3.0.0 UPnP/1.0 Platinum/1.0.5.13") && Utils.getConfigByName(AppContext.getInstance(),"WhiteList").contains(BILIBILI.packageName))
             return BILIBILI;
-        if(agent.equals("Linux/4.14.186+, UPnP/1.0, Portable SDK for UPnP devices/1.6.20"))
+        if(agent.equals("Linux/4.14.186+, UPnP/1.0, Portable SDK for UPnP devices/1.6.20") && Utils.getConfigByName(AppContext.getInstance(),"WhiteList").contains(YOUKU.packageName))
             return YOUKU;
         return UNKNOW;
     }

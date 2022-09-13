@@ -200,6 +200,7 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,const 
     char *q = (char *) meta;
     const NPT_String* agent  = context.GetRequest().GetHeaders().GetHeaderValue(NPT_HTTP_HEADER_USER_AGENT);
     __android_log_print(ANDROID_LOG_ERROR, "xia", "-------agent------- %s",agent->GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------url------- %s",uri.GetChars());
     char *o = (char *) agent->GetChars();
     mcb.url_player_open(mcb.cls, p, 0, o);
     NPT_CHECK_SEVERE(action->SetArgumentsOutFromStateVariable());
