@@ -226,7 +226,6 @@ public class MainActivity extends Activity implements WifiP2pManager.PeerListLis
                 break;
             case Event.CALLBACK_EVENT_ON_STOP:
                 //停止播放
-                this.finish();
             case Event.CALLBACK_EVENT_ON_PAUSE:
                 //暂停
             case Event.CALLBACK_EVENT_ON_PLAY:

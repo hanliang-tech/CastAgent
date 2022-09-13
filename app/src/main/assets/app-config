@@ -2,7 +2,7 @@
 Name: TCL电视
 //读取client传过来的prefer参数，如果在白名单里，就交给该app执行DLNA服务
 //包名  com.cibn.tv(优酷)  com.xiaodianshi.tv.yst(哔哩哔哩)  com.gitvdemo.video(爱奇艺)
-WhiteList: com.gitvdemo.video, com.cibn.tv
+WhiteList: com.cibn.tv,com.gitvdemo.video
 //实际执行DLNA动作的server包名
 Default: myself
 //服务端管理接口地址，接口功能即支持指定某个请求要调度给谁

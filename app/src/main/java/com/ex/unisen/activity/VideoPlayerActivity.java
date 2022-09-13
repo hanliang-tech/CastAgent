@@ -208,7 +208,7 @@ public class VideoPlayerActivity extends Activity implements PLOnPreparedListene
     public static long getDuration(){
         if(mVideoView == null)
             return 0;
-        Log.e("xia","mVideoView.getCurrentPosition()::" + mVideoView.getDuration());
+        Log.e("xia","mVideoView.getDuration()::" + mVideoView.getDuration());
         return mVideoView.getDuration();
     }
     @Override

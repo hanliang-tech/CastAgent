@@ -69,7 +69,7 @@ public class CastServer extends Service {
     }
 
 
-    private static void onNEvent(int type, String param1, String param2, String param3) {
+    private static int onNEvent(int type, String param1, String param2, String param3) {
         Log.d(TAG, "c to java ---type ::" + type + "---param1 ::" + param1 + "---param2 ::" + param2 + "---param3 ::" + param3);
         Event event = new Event();
         event.setOperate(type);
@@ -99,9 +99,10 @@ public class CastServer extends Service {
                         e.printStackTrace();
                         Log.d("ruisen", "未知应用错误");
                     }
-                    return;
+                    return 2;
                 }
                 if (Utils.isAppInstalled(AppContext.getInstance(), currentApp.getPackageName())) {
+
                     Log.d("ruisen", "播放");
                     ComponentName componentName = new ComponentName(currentApp.getPackageName(), currentApp.getLaunchActivity());
                     Intent intent = new Intent();
@@ -113,7 +114,7 @@ public class CastServer extends Service {
                 } else {
 //                    Toast.makeText(AppContext.getInstance(), "未安装应用", Toast.LENGTH_LONG).show();
                 }
-                break;
+                return 3;
             case Event.CALLBACK_EVENT_ON_SEEK:
                 //拉进度条
                 Log.d(TAG, "拉进度条");
@@ -150,9 +151,12 @@ public class CastServer extends Service {
                 EventBus.getDefault().post(event);
                 break;
             case Event.CALLBACK_EVENT_ON_STOP:
-                Log.i("xia","暂停");
-                Utils.forceStopPackage(AppContext.getInstance(), currentApp.getPackageName());
-                EventBus.getDefault().post(event);
+                Log.i("xia","停止");
+                if(!currentApp.getPackageName().equals(App.UNKNOW.getPackageName())) {
+                    Utils.forceStopPackage(AppContext.getInstance(), currentApp.getPackageName());
+                }else {
+                    EventBus.getDefault().post(event);
+                }
                 break;
             case Event.CALLBACK_EVENT_ON_SET_PLAY_MODE:
                 //设置播放模式
@@ -163,6 +167,7 @@ public class CastServer extends Service {
                 Log.d(TAG, "设置静音");
                 break;
         }
+        return 1;
     }
 
 
