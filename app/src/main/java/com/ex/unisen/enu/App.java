@@ -27,7 +27,15 @@ public enum App
 
 
     public static App getInstanceWithAgent(String agent){
-
+        if(Utils.getConfigByName(AppContext.getInstance(),"Default").contains(QIYIGUO.packageName)){
+            return QIYIGUO;
+        }
+        if(Utils.getConfigByName(AppContext.getInstance(),"Default").contains(BILIBILI.packageName)){
+            return QIYIGUO;
+        }
+        if(Utils.getConfigByName(AppContext.getInstance(),"Default").contains(YOUKU.packageName)){
+            return QIYIGUO;
+        }
         if(agent.contains("IQIYIDLNA") && Utils.getConfigByName(AppContext.getInstance(),"WhiteList").contains(QIYIGUO.packageName))
             return QIYIGUO;
         if(agent.equals("Linux/3.0.0 UPnP/1.0 Platinum/1.0.5.13") && Utils.getConfigByName(AppContext.getInstance(),"WhiteList").contains(BILIBILI.packageName))
