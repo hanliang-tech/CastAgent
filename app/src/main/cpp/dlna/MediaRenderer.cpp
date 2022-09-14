@@ -17,6 +17,7 @@ cast_callbacks_t mcb;
 PLT_UPnP *upnp;
 PLT_CtrlPointReference ctrlPoint;
 DLNAController *controller;
+bool currentAppPlaying = true;
 
 MediaRenderer::MediaRenderer(const char *friendly_name,
                              bool show_ip     /* = false */,
@@ -73,7 +74,7 @@ NPT_Result MediaRenderer::SetupServices() {
 
 //接受到手机下一集消息时，调用
 NPT_Result MediaRenderer::OnNext(PLT_ActionReference &action) {
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d \n", __func__, __LINE__);
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     NPT_String uri, meta;
     PLT_Service *service;
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
@@ -88,29 +89,34 @@ NPT_Result MediaRenderer::OnNext(PLT_ActionReference &action) {
 
 NPT_Result MediaRenderer::OnPause(PLT_ActionReference &action) {
     PLT_Service *service;
-//    DoJavaCallback(CALLBACK_EVENT_ON_PAUSE);
     __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d \n", __func__, __LINE__);
-    mcb.url_player_pause(mcb.cls);
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
     service->SetStateVariable("TransportState", "PAUSED_PLAYBACK");
     service->SetStateVariable("TransportStatus", "OK");
     // controller
     //controller->setRendererPause();
-    controller->setRendererPause();
+    if (!currentAppPlaying) {
+        controller->setRendererPause();
+    } else {
+        mcb.url_player_pause(mcb.cls);
+    }
     return NPT_SUCCESS;
 }
 
 NPT_Result MediaRenderer::OnPrevious(PLT_ActionReference &action) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ： \n", __func__, __LINE__);
 //    DoJavaCallback(CALLBACK_EVENT_ON_PREVIOUS);
     return NPT_SUCCESS;
 }
 
 NPT_Result MediaRenderer::OnStop(PLT_ActionReference &action) {
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d \n", __func__, __LINE__);
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     PLT_Service *service;
-//    DoJavaCallback(CALLBACK_EVENT_ON_STOP);
-    mcb.url_player_stop(mcb.cls);
-    controller->setRendererStop();
+    if (!currentAppPlaying) {
+        controller->setRendererStop();
+    } else {
+        mcb.url_player_stop(mcb.cls);
+    }
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
     service->SetStateVariable("TransportState", "STOPPED");
     service->SetStateVariable("TransportStatus", "OK");
@@ -118,10 +124,14 @@ NPT_Result MediaRenderer::OnStop(PLT_ActionReference &action) {
 }
 
 NPT_Result MediaRenderer::Stop() {
-    LOGD("MediaRenderer::OnStop()");
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);;
     PLT_Service *service;
-    controller->setRendererStop();
-    mcb.url_player_stop(mcb.cls);
+    if (!currentAppPlaying) {
+        controller->setRendererStop();
+    } else {
+        mcb.url_player_stop(mcb.cls);
+    }
+
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
     service->SetStateVariable("TransportState", "STOPPED");
     service->SetStateVariable("TransportStatus", "OK");
@@ -139,14 +149,13 @@ NPT_Result MediaRenderer::OnPlay(PLT_ActionReference &action) {
     // if not set, use the current file being played
     service->SetStateVariable("TransportState", "TRANSITIONING");
     service->SetStateVariable("TransportStatus", "OK");
-    // parse meta data and play media
-//    DoJavaCallback(CALLBACK_EVENT_ON_PLAY, uri, meta);
-    //   char *p = (char *)uri;
-    //  mcb.AirPlayPlayback_Open(mcb.cls,p,0.0f,0);
-//    mcb.url_player_play(mcb.cls);
-    controller->setRendererAVTransportURI(uri, meta);
-    controller->setRendererPlay();
-    controller->getTransportPlayTimeForNow();
+    if (!currentAppPlaying) {
+        controller->setRendererAVTransportURI(uri, meta);
+        controller->setRendererPlay();
+        controller->getTransportPlayTimeForNow();
+    } else {
+        mcb.url_player_play(mcb.cls);
+    }
     // just return success because the play actions are asynchronous
     service->SetStateVariable("TransportState", "PLAYING");
     service->SetStateVariable("TransportStatus", "OK");
@@ -161,6 +170,7 @@ NPT_Result MediaRenderer::OnPlay(PLT_ActionReference &action) {
 }
 
 NPT_Result MediaRenderer::OnSeek(PLT_ActionReference &action) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     NPT_String unit, target;
     NPT_CHECK_SEVERE(action->GetArgumentValue("Unit", unit));
     NPT_CHECK_SEVERE(action->GetArgumentValue("Target", target));
@@ -171,14 +181,19 @@ NPT_Result MediaRenderer::OnSeek(PLT_ActionReference &action) {
         __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d target ： %s\n", __func__, __LINE__,
                             target.GetChars());
         const char *secondString = NPT_String::FromInteger(seconds).GetChars();
-        // mcb.url_player_seek(mcb.cls,seconds*1000);
-        controller->setSeekTime(secondString);
+        if (!currentAppPlaying) {
+            controller->setSeekTime(secondString);
+        } else {
+            mcb.url_player_seek(mcb.cls, seconds * 1000);
+        }
     }
     return NPT_SUCCESS;
 }
 
-NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,const PLT_HttpRequestContext& context) {
-    NPT_String uri, meta,serverIp,clientIp;
+NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,
+                                              const PLT_HttpRequestContext &context) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
+    NPT_String uri, meta, serverIp, clientIp;
     PLT_Service *service;
     NPT_CHECK_SEVERE(FindServiceByType("urn:schemas-upnp-org:service:AVTransport:1", service));
     NPT_CHECK_SEVERE(action->GetArgumentValue("CurrentURI", uri));
@@ -198,20 +213,29 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,const 
         return 0;
     char *p = (char *) uri;
     char *q = (char *) meta;
-    const NPT_String* agent  = context.GetRequest().GetHeaders().GetHeaderValue(NPT_HTTP_HEADER_USER_AGENT);
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------agent------- %s",agent->GetChars());
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------url------- %s",uri.GetChars());
+    const NPT_String *agent = context.GetRequest().GetHeaders().GetHeaderValue(
+            NPT_HTTP_HEADER_USER_AGENT);
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------agent------- %s", agent->GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------url------- %s", uri.GetChars());
     char *o = (char *) agent->GetChars();
-    mcb.url_player_open(mcb.cls, p, 0, o);
+    int result = mcb.url_player_open(mcb.cls, p, 0, o);
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------result------- ::%d",result);
+    if (result == 3) {
+        currentAppPlaying = false;
+    } else if (result == 2) {
+        currentAppPlaying = true;
+    }
     NPT_CHECK_SEVERE(action->SetArgumentsOutFromStateVariable());
     bool isFind = false;
-    while (!isFind) {
+    while (!isFind && result == 3) {
         ctrlPoint->Search(
                 NPT_HttpUrl("239.255.255.250", 1900, "*"),
-                "urn:schemas-microsoft-com:service:MSContentDirectory:1", 2, NPT_TimeInterval(10.), NPT_TimeInterval(10.));
+                "urn:schemas-microsoft-com:service:MSContentDirectory:1", 2, NPT_TimeInterval(10.),
+                NPT_TimeInterval(10.));
         ctrlPoint->Search(
                 NPT_HttpUrl("239.255.255.250", 1900, "*"),
-                "urn:schemas-upnp-org:service:ContentDirectory:1", 2, NPT_TimeInterval(10.), NPT_TimeInterval(10.));
+                "urn:schemas-upnp-org:service:ContentDirectory:1", 2, NPT_TimeInterval(10.),
+                NPT_TimeInterval(10.));
 //        controller->Search()
         __android_log_print(ANDROID_LOG_ERROR, "xia", "-------search-------");
         sleep(3);
@@ -221,67 +245,71 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,const 
 
         if (ips.GetItemCount()) {
             serverIp = ips.GetFirstItem()->ToString();
-            __android_log_print(ANDROID_LOG_ERROR, "xia", "localhost ip %s", ips.GetFirstItem()->ToString().GetChars());
+            __android_log_print(ANDROID_LOG_ERROR, "xia", "localhost ip %s",
+                                ips.GetFirstItem()->ToString().GetChars());
         }
 
         const PLT_StringMap rendersNameTable = controller->getMediaRenderersNameTable();
-        __android_log_print(ANDROID_LOG_ERROR, "xia","\"  entry  count::::  %d\"", rendersNameTable.GetEntries().GetItemCount());
+        __android_log_print(ANDROID_LOG_ERROR, "xia", "\"  entry  count::::  %d\"",
+                            rendersNameTable.GetEntries().GetItemCount());
         if (rendersNameTable.GetEntries().GetItemCount() != 0) {
             NPT_List<PLT_StringMapEntry *>::Iterator entry = rendersNameTable.GetEntries().GetItem(
                     1);
             while (entry) {
-//                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  name::  %s\\n\"", (*entry)->GetValue().Split("|").GetItem(0)->GetChars());
-//                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  ip::  %s\\n\"", (*entry)->GetValue().Split("|").GetItem(1)->GetChars());
-                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  ip == ip ::::  %d\"", serverIp.Compare(clientIp));
-                __android_log_print(ANDROID_LOG_ERROR, "xia","\"  1 == 1 ::::  %d\"", NPT_String("1").Compare( NPT_String("1")));
                 clientIp = NPT_String((*entry)->GetValue().Split("|").GetItem(1)->GetChars());
-                __android_log_print(ANDROID_LOG_ERROR, "xia","client ip::  %s", clientIp.GetChars());
-                __android_log_print(ANDROID_LOG_ERROR, "xia","server ip::  %s", serverIp.GetChars());
-                __android_log_print(ANDROID_LOG_ERROR, "xia","server ip::  %d", serverIp.Compare(clientIp));
-                if (friendName.Compare((*entry)->GetValue()) != 0 && serverIp.Compare(clientIp) == 0) {
+                if (friendName.Compare((*entry)->GetValue()) != 0 &&
+                    serverIp.Compare(clientIp) == 0) {
                     controller->chooseMediaRenderer((*entry)->GetKey());
                     __android_log_print(ANDROID_LOG_ERROR, "xia", "选择设备");
                     isFind = true;
-                    break;
+                    controller->setRendererAVTransportURI(uri, meta);
+                    controller->getTransportPlayTimeForNow();
+                    controller->setRendererPlay();
+                    return NPT_SUCCESS;
                 }
                 ++entry;
                 __android_log_print(ANDROID_LOG_ERROR, "xia", "搜索设备");
             }
             __android_log_print(ANDROID_LOG_ERROR, "xia", "搜索设备完毕");
         }
-//        sleep(1);
-    }
-    if (isFind) {
-        __android_log_print(ANDROID_LOG_ERROR, "xia", "-------isFind------- ");
-        controller->setRendererAVTransportURI(uri, meta);
-        controller->getTransportPlayTimeForNow();
-        controller->setRendererPlay();
     }
     return NPT_SUCCESS;
 }
 
 NPT_Result MediaRenderer::OnSetVolume(PLT_ActionReference &action) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     NPT_String volume;
     NPT_CHECK_SEVERE(action->GetArgumentValue("DesiredVolume", volume));
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "volume::  %s", volume.GetChars());
     int result = 0;
     volume.ToInteger(result, false);
-    controller->setRenderVolume(result);
-    // mcb.url_player_setvolume(mcb.cls,result);
+    if (!currentAppPlaying) {
+        controller->setRenderVolume(result);
+    } else {
+        mcb.url_player_setvolume(mcb.cls, result);
+    }
     return NPT_SUCCESS;
 }
 
 NPT_Result MediaRenderer::OnSetMute(PLT_ActionReference &action) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     NPT_String mute;
     NPT_CHECK_SEVERE(action->GetArgumentValue("DesiredMute", mute));
-    controller->setRenderVolume(0);
+    if (!currentAppPlaying) {
+        controller->setRenderVolume(0);
+    } else {
+        mcb.url_player_setvolume(mcb.cls, 0);
+    }
     return NPT_SUCCESS;
 }
 
 
 NPT_Result MediaRenderer::OnGetPositionInfo(PLT_ActionReference &action) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     NPT_String length, position;
     length = NPT_String::FromInteger(mcb.url_player_getduration(mcb.cls));
     position = NPT_String::FromInteger(mcb.url_player_getpostion(mcb.cls));
+
 
     NPT_CHECK_SEVERE(action->SetArgumentValue("Track", "0"));
 
@@ -289,18 +317,31 @@ NPT_Result MediaRenderer::OnGetPositionInfo(PLT_ActionReference &action) {
 
     NPT_CHECK_SEVERE(action->SetArgumentValue("TrackURI", ""));
 
+    if (!currentAppPlaying) {
+        NPT_CHECK_SEVERE(action->SetArgumentValue("RelTime", PLT_Didl::FormatTimeStamp(
+                0).GetChars()));
 
-    NPT_CHECK_SEVERE(action->SetArgumentValue("RelTime", PLT_Didl::FormatTimeStamp(
-            mcb.url_player_getpostion(mcb.cls) / 1000).GetChars()));
-
-    NPT_CHECK_SEVERE(action->SetArgumentValue("AbsTime", PLT_Didl::FormatTimeStamp(
-            mcb.url_player_getpostion(mcb.cls) / 1000).GetChars()));
+        NPT_CHECK_SEVERE(action->SetArgumentValue("AbsTime", PLT_Didl::FormatTimeStamp(
+                0).GetChars()));
 
 
-    NPT_CHECK_SEVERE(action->SetArgumentValue("TrackDuration",
-                                              PLT_Didl::FormatTimeStamp(
-                                                      mcb.url_player_getduration(mcb.cls) /
-                                                      1000).GetChars()));
+        NPT_CHECK_SEVERE(action->SetArgumentValue("TrackDuration",
+                                                  PLT_Didl::FormatTimeStamp(
+                                                          0).GetChars()));
+    } else {
+        NPT_CHECK_SEVERE(action->SetArgumentValue("RelTime", PLT_Didl::FormatTimeStamp(
+                mcb.url_player_getpostion(mcb.cls) / 1000).GetChars()));
+
+        NPT_CHECK_SEVERE(action->SetArgumentValue("AbsTime", PLT_Didl::FormatTimeStamp(
+                mcb.url_player_getpostion(mcb.cls) / 1000).GetChars()));
+
+
+        NPT_CHECK_SEVERE(action->SetArgumentValue("TrackDuration",
+                                                  PLT_Didl::FormatTimeStamp(
+                                                          mcb.url_player_getduration(mcb.cls) /
+                                                          1000).GetChars()));
+    }
+
 
     NPT_CHECK_SEVERE(action->SetArgumentValue("RelCount", "2147483647"));
 
@@ -311,14 +352,14 @@ NPT_Result MediaRenderer::OnGetPositionInfo(PLT_ActionReference &action) {
 NPT_Result MediaRenderer::ProcessHttpGetRequest(NPT_HttpRequest &request,
                                                 const NPT_HttpRequestContext &context,
                                                 NPT_HttpResponse &response) {
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     // get the address of who sent us some data back
     NPT_String ip_address = context.GetRemoteAddress().GetIpAddress().ToString();
     NPT_String method = request.GetMethod();
     NPT_String protocol = request.GetProtocol();
     NPT_HttpUrl url = request.GetUrl();
-    const NPT_String* agent  = request.GetHeaders().GetHeaderValue(NPT_HTTP_HEADER_USER_AGENT);
+    const NPT_String *agent = request.GetHeaders().GetHeaderValue(NPT_HTTP_HEADER_USER_AGENT);
     PLT_DeviceSignature signature = PLT_HttpHelper::GetDeviceSignature(request);
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "agent %s: \n", agent->GetChars());
     return PLT_DeviceHost::ProcessHttpGetRequest(request, context, response);
 }
 

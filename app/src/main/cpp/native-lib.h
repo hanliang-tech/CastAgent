@@ -24,7 +24,7 @@
 struct cast_callbacks_s {
     void *cls;
     /* Compulsory callback functions */
-    void(*url_player_open) (void *cls, char *url, float fPosition,char *mediaInfo);
+    int(*url_player_open) (void *cls, char *url, float fPosition,char *mediaInfo);
     void(*url_player_play) (void *cls);
     void(*url_player_pause)(void *cls);
     void(*url_player_stop) (void *cls);

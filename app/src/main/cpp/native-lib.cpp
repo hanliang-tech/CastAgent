@@ -56,7 +56,7 @@
 
 #define CALLBACK_CLASS "com/ex/unisen/cast/CastServer"
 #define CALLBACK_METHOD "onNEvent"
-#define CALLBACK_SIGN "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"
+#define CALLBACK_SIGN "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)I"
 
 
 #define CALLBACK_CLASS_GETPOSITION "com/ex/unisen/activity/VideoPlayerActivity"
@@ -152,17 +152,23 @@ int DoJavaCallback(int type, const char *param1,
     jclass inflectClass = g_callbackClass;
     jmethodID inflectMethod = g_callbackMethod;
     if (inflectClass == NULL || inflectMethod == NULL) {
-        goto end;
+        if (env->ExceptionOccurred()) {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+        }
+        if (isAttach) {
+            g_vm->DetachCurrentThread();
+        }
+		return NPT_ERROR_NO_SUCH_CLASS;
     }
     //LOGD("TYPE: %d\nPARAM1: %s\nPARAM1: %s", type, param1, param2);
     jParam1 = env->NewStringUTF(param1);
     jParam2 = env->NewStringUTF(param2);
     jParam3 = env->NewStringUTF(param3);
-    env->CallStaticVoidMethod(inflectClass, inflectMethod, type, jParam1, jParam2, jParam3);
+	jint r = env->CallStaticIntMethod(inflectClass, inflectMethod, type, jParam1, jParam2, jParam3);
     env->DeleteLocalRef(jParam1);
     env->DeleteLocalRef(jParam2);
     env->DeleteLocalRef(jParam3);
-    end:
     if (env->ExceptionOccurred()) {
         env->ExceptionDescribe();
         env->ExceptionClear();
@@ -170,7 +176,7 @@ int DoJavaCallback(int type, const char *param1,
     if (isAttach) {
         g_vm->DetachCurrentThread();
     }
-    return NPT_SUCCESS;
+    return r;
 }
 
 long getDuration(){
@@ -312,14 +318,14 @@ int64_t get_current_time_ms()
 //dPosition:��Ƶ�����ϵ�(x1000)
 //�����Ǵ�url ������������
 
-void url_player_open(void *cls, char *url, float fPosition,char *mediaInfo)
+int url_player_open(void *cls, char *url, float fPosition,char *mediaInfo)
 {
 	__android_log_print(ANDROID_LOG_ERROR, "xia", "url_player_open agent::  %s\n", mediaInfo);
 	mVideoStatus = 1;
 	char agent[100] = {0};
 	strcpy(agent,mediaInfo);
-    DoJavaCallback(CALLBACK_EVENT_ON_SET_AV_TRANSPORT_URI, url, agent,NULL);
-
+    int result = DoJavaCallback(CALLBACK_EVENT_ON_SET_AV_TRANSPORT_URI, url, agent,NULL);
+    return result;
 }
 
 //������ò������Ŀ�ʼ����
@@ -583,7 +589,7 @@ Java_com_ex_unisen_cast_CastServer_startCastServer( JNIEnv* env, jobject thiz,
 
     g_callbackMethod_position = env->GetStaticMethodID(g_callbackClass, CALLBACK_METHOD_GETPOSITION, "()J");
 
-    g_callbackMethod_position = env->GetStaticMethodID(g_callbackClass, CALLBACK_METHOD_GETDURATION, "()J");
+    g_callbackMethod_duration = env->GetStaticMethodID(g_callbackClass, CALLBACK_METHOD_GETDURATION, "()J");
 
     memset(&cb, 0, sizeof(cast_callbacks_t));
 
