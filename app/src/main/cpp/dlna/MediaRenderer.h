@@ -61,7 +61,6 @@ public:
    // NPT_Result MediaRenderer::BindServer()
 
 private:
-    NPT_String friendName;
     NPT_Result SetupServices() override;
 
     NPT_Result DoJavaCallback(int type, const char *param1 = "",
@@ -69,6 +68,7 @@ private:
                               const char *param3 = "");
 
     int is_begin_with(const char *str1,  const char *str2);
+
 };
 
 

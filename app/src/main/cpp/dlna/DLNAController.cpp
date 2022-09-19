@@ -50,7 +50,7 @@ DLNAController::getMediaRenderersNameTable() {
     while (entry) {
         PLT_DeviceDataReference device = (*entry)->GetValue();
         NPT_String name = device->GetFriendlyName();
-        NPT_String ip = device->GetLocalIP().ToString();
+        NPT_String ip = device->GetURLBase().GetHost();
         namesTable.Put((*entry)->GetKey(), name + "|" + ip);
         ++entry;
     }

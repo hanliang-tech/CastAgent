@@ -3,6 +3,7 @@
 //
 
 #include <unistd.h>
+#include <pthread.h>
 #include "Neptune/Core/Neptune.h"
 #include "MediaRenderer.h"
 #include "NdkLogger.h"
@@ -18,7 +19,7 @@ PLT_UPnP *upnp;
 PLT_CtrlPointReference ctrlPoint;
 DLNAController *controller;
 bool currentAppPlaying = true;
-
+NPT_String friendName;
 MediaRenderer::MediaRenderer(const char *friendly_name,
                              bool show_ip     /* = false */,
                              const char *uuid        /* = NULL */,
@@ -174,6 +175,10 @@ NPT_Result MediaRenderer::OnSeek(PLT_ActionReference &action) {
     NPT_String unit, target;
     NPT_CHECK_SEVERE(action->GetArgumentValue("Unit", unit));
     NPT_CHECK_SEVERE(action->GetArgumentValue("Target", target));
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d target ： %s\n", __func__, __LINE__,
+                        target.GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d Unit ： %s\n", __func__, __LINE__,
+                        unit.GetChars());
     if (!unit.Compare("REL_TIME")) {
         // converts target to seconds
         NPT_UInt32 seconds;
@@ -182,12 +187,83 @@ NPT_Result MediaRenderer::OnSeek(PLT_ActionReference &action) {
                             target.GetChars());
         const char *secondString = NPT_String::FromInteger(seconds).GetChars();
         if (!currentAppPlaying) {
-            controller->setSeekTime(secondString);
+            controller->setSeekTime(target.GetChars());
         } else {
             mcb.url_player_seek(mcb.cls, seconds * 1000);
         }
     }
     return NPT_SUCCESS;
+}
+
+typedef struct
+{
+    char *url;
+    char *meta;
+}playInfo;
+
+void * searchService(void *arg) {
+    playInfo* info = (playInfo*)arg;
+    char url[strlen(info->url)];
+    char meta[strlen(info->meta)];
+    strcpy(meta, info->meta);
+    strcpy(url, info->url);
+    pthread_detach(pthread_self());
+    NPT_String serverIp, clientIp;
+    bool isFind = false;
+    while (!currentAppPlaying && !isFind) {
+        NPT_List<NPT_IpAddress> ips;
+        PLT_UPnPMessageHelper::GetIPAddresses(ips);
+        NPT_String currentServerId;
+
+        if (ips.GetItemCount()) {
+            serverIp = ips.GetFirstItem()->ToString();
+        }
+
+        const PLT_StringMap rendersNameTable = controller->getMediaRenderersNameTable();
+        if (rendersNameTable.GetEntries().GetItemCount() != 0) {
+            NPT_List<PLT_StringMapEntry *>::Iterator entry = rendersNameTable.GetEntries().GetItem(
+                    1);
+            while (entry) {
+//                __android_log_print(ANDROID_LOG_ERROR, "xia", "server ip %s",
+//                                    serverIp.GetChars());
+//                __android_log_print(ANDROID_LOG_ERROR, "xia", "client ip %s",
+//                                    clientIp.GetChars());
+//                __android_log_print(ANDROID_LOG_ERROR, "xia", "(*entry)->GetValue() %s",
+//                                    (*entry)->GetValue().GetChars());
+//                __android_log_print(ANDROID_LOG_ERROR, "xia", "friendName %s",
+//                                    friendName.GetChars());
+//                __android_log_print(ANDROID_LOG_ERROR, "xia", "friendName.Compare((*entry)->GetValue().Split(\"|\").GetItem(0)->GetChars()) %d",
+//                                    friendName.Compare((*entry)->GetValue().Split("|").GetItem(0)->GetChars()));
+//                __android_log_print(ANDROID_LOG_ERROR, "xia", "serverIp.Compare(clientIp) %d",
+//                                    serverIp.Compare(clientIp));
+                clientIp = NPT_String((*entry)->GetValue().Split("|").GetItem(1)->GetChars());
+                NPT_String deviceName = NPT_String((*entry)->GetValue().Split("|").GetItem(0)->GetChars());
+                if (friendName.Compare(deviceName) != 0 &&
+                    serverIp.Compare(clientIp) == 0) {
+                    controller->chooseMediaRenderer((*entry)->GetKey());
+                    __android_log_print(ANDROID_LOG_ERROR, "xia", "选择设备");
+                    isFind = true;
+                    __android_log_print(ANDROID_LOG_ERROR, "xia", "url :: %s:：\n", url);
+                    controller->setRendererAVTransportURI(url, meta);
+                    controller->getTransportPlayTimeForNow();
+                    controller->setRendererPlay();
+                }
+                ++entry;
+                __android_log_print(ANDROID_LOG_ERROR, "xia", "搜索设备");
+            }
+            if(!isFind)
+                sleep(1);
+            else
+                sleep(3);
+            __android_log_print(ANDROID_LOG_ERROR, "xia", "搜索设备一轮完毕");
+        }
+    }
+//    free(url);
+//    free(meta);
+//    free(info);
+//    search_service = 0;
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "出循环");
+    return NULL;
 }
 
 NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,
@@ -207,74 +283,43 @@ NPT_Result MediaRenderer::OnSetAVTransportURI(PLT_ActionReference &action,
     service->SetStateVariable("AVTransportURIMetaData", meta);
     service->SetStateVariable("NextAVTransportURI", "");
     service->SetStateVariable("NextAVTransportURIMetaData", "");
-
-
     if (uri.IsEmpty())
         return 0;
     char *p = (char *) uri;
     char *q = (char *) meta;
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     const NPT_String *agent = context.GetRequest().GetHeaders().GetHeaderValue(
             NPT_HTTP_HEADER_USER_AGENT);
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------agent------- %s", agent->GetChars());
+    __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);
     __android_log_print(ANDROID_LOG_ERROR, "xia", "-------url------- %s", uri.GetChars());
-    char *o = (char *) agent->GetChars();
+    char *o;
+    if(agent != nullptr){
+        __android_log_print(ANDROID_LOG_ERROR, "xia", "-------agent------- %s", agent->GetChars());
+        o = (char *) agent->GetChars();
+    }else{
+       o = "";
+    }
     int result = mcb.url_player_open(mcb.cls, p, 0, o);
-    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------result------- ::%d",result);
+//    __android_log_print(ANDROID_LOG_ERROR, "xia", "-------result------- ::%d",result);
     if (result == 3) {
         currentAppPlaying = false;
+        playInfo info = {
+                p,
+                q
+        };
+        NPT_CHECK_SEVERE(action->SetArgumentsOutFromStateVariable());
+        pthread_t  tid;
+        int error =  pthread_create(&tid, NULL, searchService, (void*)&info);
+        if(error != 0){
+            __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ： %s\n", __func__, __LINE__,strerror(error));
+        }
+        sleep(1);
     } else if (result == 2) {
         currentAppPlaying = true;
     }
-    NPT_CHECK_SEVERE(action->SetArgumentsOutFromStateVariable());
-    bool isFind = false;
-    while (!isFind && result == 3) {
-        ctrlPoint->Search(
-                NPT_HttpUrl("239.255.255.250", 1900, "*"),
-                "urn:schemas-microsoft-com:service:MSContentDirectory:1", 2, NPT_TimeInterval(10.),
-                NPT_TimeInterval(10.));
-        ctrlPoint->Search(
-                NPT_HttpUrl("239.255.255.250", 1900, "*"),
-                "urn:schemas-upnp-org:service:ContentDirectory:1", 2, NPT_TimeInterval(10.),
-                NPT_TimeInterval(10.));
-//        controller->Search()
-        __android_log_print(ANDROID_LOG_ERROR, "xia", "-------search-------");
-        sleep(3);
-        __android_log_print(ANDROID_LOG_ERROR, "xia", "-------search-------");
-        NPT_List<NPT_IpAddress> ips;
-        PLT_UPnPMessageHelper::GetIPAddresses(ips);
-
-        if (ips.GetItemCount()) {
-            serverIp = ips.GetFirstItem()->ToString();
-            __android_log_print(ANDROID_LOG_ERROR, "xia", "localhost ip %s",
-                                ips.GetFirstItem()->ToString().GetChars());
-        }
-
-        const PLT_StringMap rendersNameTable = controller->getMediaRenderersNameTable();
-        __android_log_print(ANDROID_LOG_ERROR, "xia", "\"  entry  count::::  %d\"",
-                            rendersNameTable.GetEntries().GetItemCount());
-        if (rendersNameTable.GetEntries().GetItemCount() != 0) {
-            NPT_List<PLT_StringMapEntry *>::Iterator entry = rendersNameTable.GetEntries().GetItem(
-                    1);
-            while (entry) {
-                clientIp = NPT_String((*entry)->GetValue().Split("|").GetItem(1)->GetChars());
-                if (friendName.Compare((*entry)->GetValue()) != 0 &&
-                    serverIp.Compare(clientIp) == 0) {
-                    controller->chooseMediaRenderer((*entry)->GetKey());
-                    __android_log_print(ANDROID_LOG_ERROR, "xia", "选择设备");
-                    isFind = true;
-                    controller->setRendererAVTransportURI(uri, meta);
-                    controller->getTransportPlayTimeForNow();
-                    controller->setRendererPlay();
-                    return NPT_SUCCESS;
-                }
-                ++entry;
-                __android_log_print(ANDROID_LOG_ERROR, "xia", "搜索设备");
-            }
-            __android_log_print(ANDROID_LOG_ERROR, "xia", "搜索设备完毕");
-        }
-    }
     return NPT_SUCCESS;
 }
+
 
 NPT_Result MediaRenderer::OnSetVolume(PLT_ActionReference &action) {
     __android_log_print(ANDROID_LOG_ERROR, "xia", "%s:%d ：\n", __func__, __LINE__);

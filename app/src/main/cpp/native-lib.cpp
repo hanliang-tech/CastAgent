@@ -622,14 +622,14 @@ Java_com_ex_unisen_cast_CastServer_startCastServer( JNIEnv* env, jobject thiz,
     char *pFriendname = (char *) env->GetStringUTFChars(devicesName, NULL);
     char *pSerialNumber = (char *) env->GetStringUTFChars(serialNumber, NULL);
     char *pUuid = (char *) env->GetStringUTFChars(deviceUuid, NULL);
-//    int ret = startMediaServer(pFriendname, SCREEN_WIDTH, SCREEN_HEIGHT, &cb);
+    int ret = startMediaServer(pFriendname, SCREEN_WIDTH, SCREEN_HEIGHT, &cb);
     dlnaServer = new DLNAServer;
     int dlnaRet = dlnaServer->Start(pFriendname, false, pUuid, (unsigned int) 0,
                                     pSerialNumber, false, &cb);
-//    running = true;
-//    pthread_create(&airplay_video_handle, NULL, airplay_video_handle_thread, NULL);
-//    pthread_create(&airplay_mirror_live_handle, NULL, airplay_mirror_live_handle_thread, NULL);
-//    pthread_create(&airplay_rightkey_handle, NULL, airplay_rightkey_handle_thread, NULL);
+    running = true;
+    pthread_create(&airplay_video_handle, NULL, airplay_video_handle_thread, NULL);
+    pthread_create(&airplay_mirror_live_handle, NULL, airplay_mirror_live_handle_thread, NULL);
+    pthread_create(&airplay_rightkey_handle, NULL, airplay_rightkey_handle_thread, NULL);
 
     env->ReleaseStringUTFChars(serialNumber, pSerialNumber);
     env->ReleaseStringUTFChars(devicesName, pFriendname);

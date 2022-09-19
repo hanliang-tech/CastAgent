@@ -18,7 +18,7 @@ DLNAServer::~DLNAServer() {
 NPT_Result
 DLNAServer::Start(const char *friendly_name, bool show_ip, const char *uuid,
                   unsigned int port,const char *serialNumber, bool port_rebind,cast_callbacks_t *cb) {
-    MediaRenderer *renderer = new MediaRenderer(friendly_name, true, uuid, port,serialNumber, port_rebind,cb);
+    MediaRenderer *renderer = new MediaRenderer(friendly_name, false, uuid, port,serialNumber, port_rebind,cb);
     mDevice = renderer;
     mediaRenderer = renderer;
     mUPnP.AddDevice(mDevice);
